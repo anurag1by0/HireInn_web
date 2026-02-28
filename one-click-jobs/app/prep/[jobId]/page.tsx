@@ -104,7 +104,8 @@ export default async function PrepPage({ params }: { params: { jobId: string } }
                                     Top Coding Questions
                                 </h2>
                                 <div className="space-y-3">
-                                    {prep.codingQuestions.map((q, i) => (
+                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                    {prep.codingQuestions.map((q: any, i: number) => (
                                         <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-200 p-4 rounded-lg hover:shadow-sm transition-shadow">
                                             <span className="font-medium text-slate-800 mb-2 sm:mb-0">{q.title}</span>
                                             <div className="flex gap-2">

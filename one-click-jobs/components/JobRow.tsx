@@ -38,8 +38,8 @@ export default function JobRow({ title, jobs, onSelect }: JobRowProps) {
                     className="flex gap-4 overflow-x-scroll scrollbar-hide px-4 md:px-8 pb-8 pt-4"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                    {jobs.map((job, idx) => (
-                        <JobCard key={job.id || idx} job={job} onSelect={onSelect} />
+                    {jobs.map((job: any, idx) => (
+                        <JobCard key={job.id || idx} job={job} />
                     ))}
                 </div>
 

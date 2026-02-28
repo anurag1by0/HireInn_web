@@ -11,6 +11,8 @@ export interface IUser extends Document {
     image?: string;
     googleId?: string;
     onboardingComplete?: boolean;
+    skillLevel?: string;
+    primaryRole?: string;
 }
 
 const UserSchema: Schema<IUser> = new Schema(
