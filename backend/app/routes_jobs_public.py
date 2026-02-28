@@ -429,7 +429,7 @@ def _score_job(job, user_experience, preferred_role, preferred_location, user_sk
         else:
             score += 10
     
-    # === ROLE MATCHING (25 pts) ===
+    # === ROLE MATCHING (50 pts max) ===
     job_role = (job.get("role") or "").lower()
     if preferred_role:
         role_lower = preferred_role.lower()
@@ -437,15 +437,15 @@ def _score_job(job, user_experience, preferred_role, preferred_location, user_sk
         role_keywords = [w for w in role_lower.replace("-", " ").split() if len(w) > 2]
         matched_keywords = sum(1 for kw in role_keywords if kw in job_role)
         if matched_keywords > 0:
-            score += min(int((matched_keywords / max(len(role_keywords), 1)) * 25), 25)
+            score += min(int((matched_keywords / max(len(role_keywords), 1)) * 50), 50)
     
-    # === LOCATION MATCHING (15 pts) ===
+    # === LOCATION MATCHING (100 pts max) ===
     if job.get("is_remote"):
-        score += 15  # Remote jobs match everyone
+        score += 100  # Remote jobs match everyone
     elif preferred_location:
         job_loc = (job.get("location") or "").lower()
         if preferred_location.lower() in job_loc:
-            score += 15
+            score += 100
     
     # === EXPERIENCE MATCHING (10 pts) ===
     job_exp = _parse_experience_level(job.get("experience_level"))

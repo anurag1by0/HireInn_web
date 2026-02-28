@@ -222,8 +222,19 @@ async def get_profile_status(current_user_id: str = Depends(get_current_user_id)
     exp_years = profile.get("total_years_experience")
     if exp_years is None:
         exp_years = profile.get("experience_years", 0)
+
+    personal_info = profile.get("personal_info") or {}
+    full_name = personal_info.get("full_name") or ""
+    
+    work_experience = profile.get("work_experience") or []
+    current_workspace = ""
+    # Find current workspace or just use the first (most recent) one
+    if work_experience and isinstance(work_experience, list) and len(work_experience) > 0:
+        current_workspace = work_experience[0].get("company") or ""
         
     return {
+        "full_name": full_name,
+        "current_workspace": current_workspace,
         "parsing_status": profile.get("parsing_status", "pending"),
         "profile_completeness": profile.get("profile_completeness", 30),
         "experience_years": str(exp_years),
