@@ -1,7 +1,5 @@
 import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_to_pass_build");
 interface ApplicationEmailData {
     userEmail: string;
     userName: string;

@@ -2,9 +2,7 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
+// Delay check to function call so build doesn't fail
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
@@ -20,6 +18,11 @@ if (!cached) {
 }
 
 async function connectToDatabase() {
+    if (!MONGODB_URI) {
+        console.warn("MONGODB_URI is missing. Database operations will fail at runtime.");
+        return null;
+    }
+
     if (cached.conn) {
         return cached.conn;
     }
