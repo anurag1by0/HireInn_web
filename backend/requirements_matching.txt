@@ -1,0 +1,41 @@
+# Core Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+motor
+pymongo
+
+# Authentication & Security
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt
+
+# Resume Parsing - PDF
+PyMuPDF
+Pillow
+
+# Resume Parsing - OCR
+pytesseract
+
+# Resume Parsing - DOCX/DOC
+python-docx
+docx2txt
+
+# LLM Integration
+groq
+
+# HTTP Client
+httpx
+
+# Utilities
+python-dotenv
+pydantic
+pydantic-settings
+email-validator
+python-dateutil
+
+# Development & Testing
+pytest
+pytest-asyncio

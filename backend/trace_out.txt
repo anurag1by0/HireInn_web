@@ -1,0 +1,5 @@
+﻿Step 1: basic imports
+Step 2: db_handler
+DEBUG:httpx:load_ssl_context verify=True cert=None trust_env=True http2=False
+DEBUG:httpx:load_verify_locations cafile='C:\\Users\\canur\\AppData\\Roaming\\Python\\Python312\\site-packages\\certifi\\cacert.pem'
+INFO:root:Supabase Client (Scraper) initialized.

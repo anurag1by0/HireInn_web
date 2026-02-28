@@ -1,0 +1,31 @@
+name: Autonomous Job Scraper
+
+# Run every 3 hours automatically
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+jobs:
+  scrape-jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: pip install -r requirements.txt
+
+      - name: Run Background Scraper
+        working-directory: ./backend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        # We explicitly run the new github_scraper.py that finishes and exits, not run_scraper.py which loops infinitely!
+        run: python github_scraper.py
