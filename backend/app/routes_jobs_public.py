@@ -521,9 +521,9 @@ def _score_job(job, user_experience, preferred_role, preferred_location, user_sk
         # If it just has a salary listed that isn't "not disclosed", add a small bonus (10 pts)
         elif salary_str and salary_str not in ["not disclosed", "hidden", ""]:
             score += 10
-            elif "$" in salary_str and any(c.isdigit() for c in salary_str):
-                # Generous fallback: any dollar amount often signifies a higher paying/global job
-                score += 10
+        elif "$" in salary_str and any(c.isdigit() for c in salary_str):
+            # Generous fallback: any dollar amount often signifies a higher paying/global job
+            score += 10
     
     return score, matching_skills
 

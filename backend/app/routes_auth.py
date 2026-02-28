@@ -259,8 +259,7 @@ async def update_profile(
     
     # Get existing profile
     res = profiles.select("*").eq("user_id", current_user_id).execute()
-    if not res.data:
-        raise HTTPException(status_code=404, detail="Profile not found")
+    profile_exists = len(res.data) > 0
         
     update_data = {}
     if preferred_role is not None:
@@ -281,7 +280,13 @@ async def update_profile(
             raise HTTPException(status_code=500, detail="Failed to save resume")
             
     if update_data:
-        profiles.update(update_data).eq("user_id", current_user_id).execute()
+        if profile_exists:
+            profiles.update(update_data).eq("user_id", current_user_id).execute()
+        else:
+            update_data["user_id"] = current_user_id
+            if "parsing_status" not in update_data:
+                update_data["parsing_status"] = "complete"
+            profiles.insert(update_data).execute()
         
     return {"message": "Profile updated successfully", "status": "pending" if resume and resume.filename else "complete"}
 
