@@ -1,6 +1,6 @@
 python-jobspy
 playwright
-fastapi
+fastapi<0.113.0
 uvicorn
 pymongo
 scikit-learn
