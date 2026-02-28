@@ -57,6 +57,7 @@ export default function ProfileSidebar({ isOpen, onClose, session }: ProfileSide
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
+    const [savedResumeName, setSavedResumeName] = useState('');
     const [profileLoading, setProfileLoading] = useState(true);
     const [currentSkills, setCurrentSkills] = useState<string[]>([]);
     const [experience, setExperience] = useState<number>(0);
@@ -86,6 +87,12 @@ export default function ProfileSidebar({ isOpen, onClose, session }: ProfileSide
                             setLocation(prof.preferred_location || '');
                             setExperience(prof.experience_years || 0);
                             setCurrentSkills(prof.skills || []);
+
+                            if (prof.resume_url) {
+                                const parts = prof.resume_url.split('/');
+                                setSavedResumeName(parts[parts.length - 1]);
+                            }
+
                             setUserName(prof.full_name || userData.name || userData.email || '');
                             setWorkspace(prof.current_workspace || '');
                         }
@@ -225,11 +232,12 @@ export default function ProfileSidebar({ isOpen, onClose, session }: ProfileSide
                                 {/* Resume Upload */}
                                 <div>
                                     <label className="block text-xs font-medium text-slate-300 mb-1">Update Resume</label>
-                                    <label className={`flex items-center gap-2 w-full bg-slate-800 border border-dashed ${resume ? 'border-emerald-500' : 'border-slate-600'} rounded-lg px-3 py-2 cursor-pointer hover:border-blue-500 transition-colors`}>
-                                        <Upload className="w-4 h-4 text-slate-400 shrink-0" />
-                                        <span className="text-sm text-slate-400 truncate">
-                                            {resume ? resume.name : 'Upload new PDF/DOCX'}
+                                    <label className={`flex flex-col justify-center items-center gap-2 w-full bg-slate-800 border-2 border-dashed ${resume || savedResumeName ? 'border-emerald-500 bg-emerald-900/10' : 'border-slate-600'} rounded-xl px-3 py-6 cursor-pointer hover:border-blue-500 transition-all`}>
+                                        <Upload className={`w-8 h-8 ${resume || savedResumeName ? 'text-emerald-400' : 'text-slate-400'} shrink-0 mb-2`} />
+                                        <span className={`text-sm font-semibold truncate max-w-full px-2 ${resume || savedResumeName ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                            {resume ? resume.name : (savedResumeName || 'Upload new PDF/DOCX')}
                                         </span>
+                                        <span className="text-[10px] text-slate-500">Click to replace current resume</span>
                                         <input
                                             type="file"
                                             accept=".pdf,.docx,.doc"

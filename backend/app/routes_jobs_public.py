@@ -370,7 +370,7 @@ async def get_personalized_jobs(
             "salary": job.get("salary_range"),
             "posted_at": job.get("posted_at"),
             "match_score": item["score"],
-            "match_percentage": f"{min(int(item['score']), 100)}%",
+            "match_percentage": f"{max(0, min(int(item['score']), 100))}%",
             "matching_skills": item["matching_skills"][:5],
             "match_reason": item["match_reason"],
             "url": job.get("source_url")
@@ -463,15 +463,25 @@ def _score_job(job, user_experience, preferred_role, preferred_location, user_sk
         if matched_keywords > 0:
             score += min(int((matched_keywords / max(len(role_keywords), 1)) * 50), 50)
     
-    # === LOCATION MATCHING (100 pts max) ===
+    # === LOCATION MATCHING (Filter) ===
+    # Realistically people don't want to relocate just because skills matched an un-preferred location
+    location_matched = False
     if job.get("is_remote"):
-        score += 100  # Remote jobs match everyone
+        location_matched = True
+        score += 30  # Remote jobs fit anywhere
     elif preferred_location:
         job_loc = (job.get("location") or "").lower()
-        # Parse multiple locations if separated by comma
         pref_locs = [loc.strip().lower() for loc in preferred_location.split(",") if loc.strip()]
         if any(pref_loc in job_loc for pref_loc in pref_locs):
-            score += 100
+            location_matched = True
+            score += 30
+    else:
+        location_matched = True # No preference set
+        score += 10
+        
+    if not location_matched and preferred_location:
+        # Heavily penalize mismatch so it never shows 100% or at top of results
+        score -= 200
     
     # === EXPERIENCE MATCHING (10 pts) ===
     job_exp = _parse_experience_level(job.get("experience_level"))
