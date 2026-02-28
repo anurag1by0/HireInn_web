@@ -145,6 +145,58 @@ class LoginRequest(BaseModelV2):
     email: str
     password: str
 
+class GoogleLoginRequest(BaseModelV2):
+    email: str
+    name: str = None
+    google_id: str
+
+@router.post("/google")
+async def google_login(data: GoogleLoginRequest):
+    """
+    Login or Register via Google OAuth
+    """
+    users = get_users_collection()
+    
+    # Check if user exists by email
+    res = users.select("*").eq("email", data.email.lower()).execute()
+    
+    if res.data:
+        user = res.data[0]
+        users.update({"last_login": datetime.utcnow().isoformat()}).eq("id", user["id"]).execute()
+    else:
+        # Register new Google User
+        new_user = {
+            "email": data.email.lower(),
+            "password_hash": "GOOGLE_OAUTH",
+            "name": data.name or data.email.split('@')[0],
+            "is_active": True,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        ins_res = users.insert(new_user).execute()
+        if not ins_res.data:
+            raise HTTPException(status_code=500, detail="Failed to create Google user")
+            
+        user = ins_res.data[0]
+        user_id = user["id"]
+        
+        # Initialize basic profile
+        profiles = get_profiles_collection()
+        profiles.insert({
+            "user_id": user_id,
+            "experience_years": 0,
+            "preferred_role": "",
+            "preferred_location": "",
+            "parsing_status": "complete",
+            "created_at": datetime.utcnow().isoformat()
+        }).execute()
+        
+    access_token = create_access_token(data={"sub": str(user["id"])})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {"id": user["id"], "email": user["email"], "name": user.get("name")}
+    }
+
 @router.post("/login")
 async def login(credentials: LoginRequest):
     """

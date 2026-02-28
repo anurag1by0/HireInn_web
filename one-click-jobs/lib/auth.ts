@@ -67,14 +67,37 @@ export const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async jwt({ token, user, account }) {
-            if (user) {
+            // For Credentials sign-in
+            if (user && account?.provider === "credentials") {
                 token.id = user.id;
                 token.accessToken = (user as any).accessToken;
             }
-            // For Google sign-in, store provider info
-            if (account?.provider === "google") {
+            // For Google sign-in
+            else if (user && account?.provider === "google") {
                 token.provider = "google";
-                token.accessToken = account.access_token;
+                try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+                    const res = await fetch(`${apiUrl}/auth/google`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: user.email,
+                            name: user.name,
+                            google_id: user.id || account.providerAccountId
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        token.accessToken = data.access_token;
+                        token.id = data.user.id;
+                    } else {
+                        throw new Error(`Google Auth Sync Failed: ${res.status}`);
+                    }
+                } catch (err) {
+                    console.error("Failed Google Backend Sync:", err);
+                    token.accessToken = account.access_token; // Original fallback
+                }
             }
             return token;
         },

@@ -23,6 +23,7 @@ export default function Onboarding() {
     const { data: session, status } = useSession();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const [preferredRole, setPreferredRole] = useState('');
     const [locations, setLocations] = useState<string[]>([]);
@@ -38,6 +39,7 @@ export default function Onboarding() {
         const token = (session as any)?.accessToken || (session as any)?.user?.accessToken;
         if (!token) return;
 
+        setError('');
         setLoading(true);
         try {
             const formData = new FormData();
@@ -55,11 +57,16 @@ export default function Onboarding() {
             if (res.ok) {
                 router.push('/');
                 router.refresh();
+            } else if (res.status === 401) {
+                setError("Your session requires an update. Please click the Profile icon menu to Sign Out, then sign back in via Google to sync your profile.");
+                setStep(1);
             } else {
+                setError(`Failed to save profile: ${res.statusText}`);
                 console.error("Failed backend update", await res.text());
             }
         } catch (error) {
             console.error('Onboarding failed:', error);
+            setError("A network error occurred connecting to the backend.");
         } finally {
             setLoading(false);
         }
@@ -108,6 +115,13 @@ export default function Onboarding() {
 
                 {/* Form Card */}
                 <div className="bg-[#1a1a2e] border border-slate-700 rounded-2xl p-8 shadow-2xl">
+                    {/* Error Banner */}
+                    {error && (
+                        <div className="mb-6 bg-red-900/40 border border-red-500/50 text-red-200 p-4 rounded-xl text-sm font-medium">
+                            {error}
+                        </div>
+                    )}
+
                     {step === 1 && (
                         <div className="space-y-6">
                             <div>
