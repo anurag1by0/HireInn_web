@@ -62,19 +62,20 @@ export default function ProfileSidebar({ isOpen, onClose, session }: ProfileSide
     const [experience, setExperience] = useState<number>(0);
 
     const token = session?.accessToken || session?.user?.accessToken || '';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
     // Load profile data and applied jobs when sidebar opens
     useEffect(() => {
         if (isOpen && token) {
             setProfileLoading(true);
-            fetch('http://localhost:8000/api/auth/me', {
+            fetch(`${apiUrl}/auth/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
                 .then(r => r.ok ? r.json() : null)
                 .then(async (userData) => {
                     if (userData) {
                         // Fetch full profile
-                        const profRes = await fetch('http://localhost:8000/api/auth/profile/status', {
+                        const profRes = await fetch(`${apiUrl}/auth/profile/status`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         if (profRes.ok) {
@@ -106,7 +107,7 @@ export default function ProfileSidebar({ isOpen, onClose, session }: ProfileSide
                 formData.append('resume', resume);
             }
 
-            const res = await fetch('http://localhost:8000/api/auth/profile/update', {
+            const res = await fetch(`${apiUrl}/auth/profile/update`, {
                 method: 'PATCH',
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData,

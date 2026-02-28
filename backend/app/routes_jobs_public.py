@@ -266,6 +266,19 @@ async def get_personalized_jobs(
     
     # Get user skills — try top-level 'skills' column first, fallback to parsed_data
     user_skills_raw = profile.get("skills") or []
+    
+    # If skills is a dictionary (from Supabase schema)
+    if isinstance(user_skills_raw, dict):
+        skills_data = user_skills_raw
+        user_skills_raw = skills_data.get("all_skills_normalized", [])
+        if not user_skills_raw:
+            user_skills_raw = (
+                skills_data.get("technical", []) +
+                skills_data.get("programming_languages", []) +
+                skills_data.get("tools_frameworks", [])
+            )
+    
+    # Fallback to parsed_data
     if not user_skills_raw:
         parsed = profile.get("parsed_data") or {}
         skills_data = parsed.get("skills", {})

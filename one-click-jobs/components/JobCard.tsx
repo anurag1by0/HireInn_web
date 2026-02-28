@@ -98,11 +98,11 @@ export default function JobCard({ job, onClick, showMatchScore = false }: JobCar
                 </div>
                 <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-white text-sm leading-snug group-hover:text-blue-300 transition-colors line-clamp-2">
-                        {job.role}
+                        {job.company}
                     </h3>
                     <p className="text-slate-400 text-xs font-medium flex items-center gap-1 mt-0.5">
                         <Building2 className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{job.company}</span>
+                        <span className="truncate">{job.role}</span>
                     </p>
                 </div>
             </div>

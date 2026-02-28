@@ -202,15 +202,33 @@ async def get_profile_status(current_user_id: str = Depends(get_current_user_id)
     
     profile = res.data[0]
     # Handle parsed_data being None or dict
-    parsed_data = profile.get("parsed_data") or {}
-    skills = parsed_data.get("skills", {})
-    all_skills = skills.get("all_skills", [])
+    user_skills_raw = profile.get("skills") or {}
+    all_skills = []
     
+    if isinstance(user_skills_raw, dict):
+        all_skills = user_skills_raw.get("all_skills_normalized", [])
+        if not all_skills:
+            all_skills = (
+                user_skills_raw.get("technical", []) +
+                user_skills_raw.get("programming_languages", []) +
+                user_skills_raw.get("tools_frameworks", [])
+            )
+    
+    if not all_skills:
+        parsed_data = profile.get("parsed_data") or {}
+        skills = parsed_data.get("skills", {})
+        all_skills = skills.get("all_skills", []) or skills.get("all_skills_normalized", [])
+    
+    exp_years = profile.get("total_years_experience")
+    if exp_years is None:
+        exp_years = profile.get("experience_years", 0)
+        
     return {
         "parsing_status": profile.get("parsing_status", "pending"),
-        "profile_completeness": 30, # TODO calculate dynamic
-        "experience_years": str(profile.get("experience_years")),
+        "profile_completeness": profile.get("profile_completeness", 30),
+        "experience_years": str(exp_years),
         "preferred_role": profile.get("preferred_role"),
         "preferred_location": profile.get("preferred_location"),
-        "skills_count": len(all_skills)
+        "skills_count": len(all_skills),
+        "skills": all_skills
     }
