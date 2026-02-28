@@ -96,14 +96,26 @@ async def get_public_jobs(
             query = query.eq("is_remote", True)
         
         if search:
-            if search_type == "company":
-                query = query.ilike("company", f"%{search}%")
-            elif search_type == "role":
-                query = query.ilike("role", f"%{search}%")
-            elif search_type == "skill":
-                query = query.ilike("description", f"%{search}%")
-            else:
-                query = query.or_(f"role.ilike.%{search}%,company.ilike.%{search}%")
+            # Multi-keyword fuzzy-ish match
+            keywords = [kw.strip() for kw in search.split() if len(kw.strip()) > 1]
+            if not keywords:
+                keywords = [search.strip()]
+                
+            or_conditions = []
+            for kw in keywords:
+                if search_type == "company":
+                    or_conditions.append(f"company.ilike.%{kw}%")
+                elif search_type == "role":
+                    or_conditions.append(f"role.ilike.%{kw}%")
+                elif search_type == "skill":
+                    or_conditions.append(f"description.ilike.%{kw}%")
+                else:
+                    or_conditions.append(f"role.ilike.%{kw}%")
+                    or_conditions.append(f"company.ilike.%{kw}%")
+                    or_conditions.append(f"description.ilike.%{kw}%")
+                    
+            if or_conditions:
+                query = query.or_(",".join(or_conditions))
         
         # Sort and paginate
         res = query.order("posted_at", desc=True).range(skip, skip + limit - 1).execute()
@@ -298,14 +310,26 @@ async def get_personalized_jobs(
     # Build query
     query = jobs.select("*")
     if search:
-        if search_type == "company":
-            query = query.ilike("company", f"%{search}%")
-        elif search_type == "role":
-            query = query.ilike("role", f"%{search}%")
-        elif search_type == "skill":
-            query = query.ilike("description", f"%{search}%")
-        else:
-            query = query.or_(f"role.ilike.%{search}%,company.ilike.%{search}%,description.ilike.%{search}%")
+        # Multi-keyword fuzzy-ish match
+        keywords = [kw.strip() for kw in search.split() if len(kw.strip()) > 1]
+        if not keywords:
+            keywords = [search.strip()]
+            
+        or_conditions = []
+        for kw in keywords:
+            if search_type == "company":
+                or_conditions.append(f"company.ilike.%{kw}%")
+            elif search_type == "role":
+                or_conditions.append(f"role.ilike.%{kw}%")
+            elif search_type == "skill":
+                or_conditions.append(f"description.ilike.%{kw}%")
+            else:
+                or_conditions.append(f"role.ilike.%{kw}%")
+                or_conditions.append(f"company.ilike.%{kw}%")
+                or_conditions.append(f"description.ilike.%{kw}%")
+                
+        if or_conditions:
+            query = query.or_(",".join(or_conditions))
         
     res_jobs = query.order("posted_at", desc=True).limit(2000).execute()
     all_jobs = res_jobs.data
@@ -444,7 +468,9 @@ def _score_job(job, user_experience, preferred_role, preferred_location, user_sk
         score += 100  # Remote jobs match everyone
     elif preferred_location:
         job_loc = (job.get("location") or "").lower()
-        if preferred_location.lower() in job_loc:
+        # Parse multiple locations if separated by comma
+        pref_locs = [loc.strip().lower() for loc in preferred_location.split(",") if loc.strip()]
+        if any(pref_loc in job_loc for pref_loc in pref_locs):
             score += 100
     
     # === EXPERIENCE MATCHING (10 pts) ===
@@ -462,22 +488,39 @@ def _score_job(job, user_experience, preferred_role, preferred_location, user_sk
         score += 5  # No requirement = neutral
         exp_is_fit = True
         
-    # === FAANG AND HIGH SALARY BONUS (Up to 40 bonus pts) ===
+    # === MNC AND HIGH SALARY BONUS (Up to 60 bonus pts) ===
     # Add significant bonus to sort these higher, but only if they fit the user's experience
     if exp_is_fit:
-        # FAANG / Top Tech bonus (25 pts)
-        faang_companies = {"google", "amazon", "microsoft", "meta", "apple", "netflix", "uber", "airbnb", "stripe", "linkedin", "atlassian", "salesforce", "oracle", "nvidia"}
+        # FAANG / Top Tech / Fortune 500 bonus (40 pts)
+        faang_companies = {
+            "google", "amazon", "microsoft", "meta", "apple", "netflix", "uber", "airbnb", 
+            "stripe", "linkedin", "atlassian", "salesforce", "oracle", "nvidia", "intel",
+            "ibm", "cisco", "adobe", "tesla", "spacex", "palantir", "databricks", "snowflake",
+            "bloomberg", "twilio", "spotify", "x", "twitter", "lyft", "doordash", "instacart",
+            "pinterest", "snap", "square", "block", "coinbase", "robinhood", "plaid"
+        }
         job_company = (job.get("company") or "").lower()
-        if any(fc in job_company for fc in faang_companies):
-            score += 25
+        
+        # Check if the company exact matches or is strongly inside
+        matched_mnc = False
+        for fc in faang_companies:
+            if fc == job_company or f"{fc} " in job_company or f" {fc}" in job_company:
+                matched_mnc = True
+                break
+                
+        if matched_mnc:
+            score += 40
             
-        # High Salary bonus (15 pts)
+        # High Salary bonus (20 pts)
         salary_str = (job.get("salary") or "").lower()
-        if salary_str:
+        if salary_str and salary_str not in ["not disclosed", "hidden", ""]:
             high_pay_keywords = ["100k", "120k", "150k", "200k", "250k", "300k", 
                                 "30l", "40l", "50l", "60l", "100,000", "150,000", "200,000", "crore", "cr"]
             if any(k in salary_str for k in high_pay_keywords):
-                score += 15
+                score += 20
+        # If it just has a salary listed that isn't "not disclosed", add a small bonus (10 pts)
+        elif salary_str and salary_str not in ["not disclosed", "hidden", ""]:
+            score += 10
             elif "$" in salary_str and any(c.isdigit() for c in salary_str):
                 # Generous fallback: any dollar amount often signifies a higher paying/global job
                 score += 10

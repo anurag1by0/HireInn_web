@@ -136,9 +136,9 @@ export default function JobCard({ job, onClick, showMatchScore = false }: JobCar
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-700/60 text-slate-300">
                     {(!job.type || job.type === 'nan') ? 'Full-time' : job.type}
                 </span>
-                {source && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-700/60 text-slate-400">
-                        via {source}
+                {job.salary && job.salary !== "Not Disclosed" && job.salary !== "Hidden" && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-900/60 text-green-300 border border-green-700/50">
+                        {job.salary}
                     </span>
                 )}
                 {showMatchScore && job.match_percentage && (

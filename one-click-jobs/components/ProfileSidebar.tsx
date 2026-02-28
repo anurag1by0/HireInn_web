@@ -211,17 +211,15 @@ export default function ProfileSidebar({ isOpen, onClose, session }: ProfileSide
 
                                 {/* Preferred Location */}
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-300 mb-1">Preferred Location</label>
-                                    <select
+                                    <label className="block text-xs font-medium text-slate-300 mb-1">Preferred Locations</label>
+                                    <input
+                                        type="text"
                                         value={location}
                                         onChange={e => setLocation(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-600 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        <option value="">Select location...</option>
-                                        {LOCATION_OPTIONS.map(loc => (
-                                            <option key={loc} value={loc}>{loc}</option>
-                                        ))}
-                                    </select>
+                                        placeholder="e.g. Bangalore, Remote, Pune"
+                                        className="w-full bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">Separate multiple locations with commas.</p>
                                 </div>
 
                                 {/* Resume Upload */}

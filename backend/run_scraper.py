@@ -111,7 +111,8 @@ def scrape_and_store(term: str, location: str, results_wanted: int = 15):
                 "source_url": url,
                 "posted_at": posted_at,
                 "job_type": str(job.get("job_type") or "Full-time"),
-                "salary_range": str(job.get("min_amount") or "") or None,
+                "experience_level": str(job.get("experience_level") or "Entry level"),
+                "salary_range": f"{job.get('min_amount')}-{job.get('max_amount')} {job.get('currency', '')}".strip("- ") if job.get('min_amount') else None,
             })
         except Exception as e:
             logging.warning(f"Error formatting job: {e}")

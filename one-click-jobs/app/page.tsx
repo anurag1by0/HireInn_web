@@ -20,9 +20,15 @@ export default function Home() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [userExperience, setUserExperience] = useState<number | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState('all');
   const [searchInput, setSearchInput] = useState('');
-  const [searchTypeInput, setSearchTypeInput] = useState('all');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Fetch user profile experience when logged in
   useEffect(() => {
@@ -37,6 +43,10 @@ export default function Home() {
           .then(data => {
             if (data?.experience_years !== undefined && data.experience_years !== null) {
               setUserExperience(parseInt(data.experience_years));
+            }
+            if (!data?.preferred_role) {
+              // If they haven't set up a profile (e.g. fresh Google Auth), force them to onboarding
+              window.location.href = '/onboarding';
             }
           })
           .catch(() => { /* ignore */ });
@@ -56,21 +66,20 @@ export default function Home() {
 
     try {
       let data;
-      const appliedSearchType = searchType !== 'all' ? searchType : undefined;
       if (status === 'authenticated' && session?.user) {
         const token = (session as any).accessToken || (session as any).user?.accessToken || '';
         if (token) {
           try {
-            data = await fetchPersonalizedJobs(token, PAGE_SIZE, currentSkip, searchQuery, appliedSearchType);
+            data = await fetchPersonalizedJobs(token, PAGE_SIZE, currentSkip, searchQuery);
           } catch {
             // Personalized failed (profile not ready?), fall back to public with experience filter
-            data = await fetchPublicJobs(PAGE_SIZE, currentSkip, { experience: userExperience, search: searchQuery, search_type: appliedSearchType });
+            data = await fetchPublicJobs(PAGE_SIZE, currentSkip, { experience: userExperience, search: searchQuery });
           }
         } else {
-          data = await fetchPublicJobs(PAGE_SIZE, currentSkip, { experience: userExperience, search: searchQuery, search_type: appliedSearchType });
+          data = await fetchPublicJobs(PAGE_SIZE, currentSkip, { experience: userExperience, search: searchQuery });
         }
       } else {
-        data = await fetchPublicJobs(PAGE_SIZE, currentSkip, { search: searchQuery, search_type: appliedSearchType });
+        data = await fetchPublicJobs(PAGE_SIZE, currentSkip, { search: searchQuery });
       }
 
       const newJobs = data.jobs || [];
@@ -90,18 +99,17 @@ export default function Home() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [session, status, skip, userExperience, searchQuery, searchType]);
+  }, [session, status, skip, userExperience, searchQuery]);
 
   // Initial load and reload when session, experience, or search changes
   useEffect(() => {
     loadJobs(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userExperience, searchQuery, searchType]);
+  }, [status, userExperience, searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchQuery(searchInput);
-    setSearchType(searchTypeInput);
   };
 
   return (
@@ -115,12 +123,7 @@ export default function Home() {
               <Search className="absolute left-4 w-5 h-5 text-slate-400" />
               <input
                 type="text"
-                placeholder={
-                  searchTypeInput === 'company' ? 'Search by company (e.g. Google)...' :
-                    searchTypeInput === 'role' ? 'Search by role (e.g. Developer)...' :
-                      searchTypeInput === 'skill' ? 'Search by skill (e.g. React)...' :
-                        'Search jobs by keyword...'
-                }
+                placeholder="Search jobs by role, company, or skills..."
                 className="w-full bg-[#1e2d3d] border border-slate-600 text-slate-100 placeholder-slate-400 rounded-full py-3.5 pl-12 pr-24 focus:outline-none focus:border-blue-500 hover:border-slate-500 transition-colors shadow-sm"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -133,28 +136,6 @@ export default function Home() {
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Filter Chips */}
-        <div className="flex items-center gap-3 mb-8">
-          <span className="text-sm font-medium text-slate-400">Filter by:</span>
-          {['company', 'role', 'skill'].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => {
-                const newType = searchTypeInput === type ? 'all' : type;
-                setSearchTypeInput(newType);
-                setSearchType(newType); // Apply filter immediately
-              }}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${searchTypeInput === type
-                ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.3)]'
-                : 'bg-[#1e2d3d] text-slate-300 border-slate-600 hover:bg-[#2d3b4e] hover:border-slate-500'
-                }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
         </div>
 
         {/* Feed Header with count */}
