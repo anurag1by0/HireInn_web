@@ -77,7 +77,7 @@ export default async function PrepPage({ params }: { params: { jobId: string } }
                                     Selection Process
                                 </h2>
                                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                    {prep.selectionProcess.map((step, i) => (
+                                    {prep.selectionProcess.map((step: string, i: number) => (
                                         <div key={i} className="bg-slate-50 border border-slate-100 p-4 rounded-lg relative">
                                             <span className="absolute top-2 right-2 text-6xl text-slate-200 font-bold -z-10 opacity-30">{i + 1}</span>
                                             <p className="font-medium text-slate-700 relative z-10">{step}</p>
