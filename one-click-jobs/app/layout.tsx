@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "One-Click Jobs | Bengaluru Tech Jobs",
-  description: "Simple one-click job board for corporate/tech jobs in India.",
+  title: "HireInn",
+  description: "Intelligent autonomous job board for corporate tech jobs.",
 };
 
 export default function RootLayout({

@@ -1,0 +1,21 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dynamic dark corporate background matching the HireInn theme -->
+  <rect width="256" height="256" rx="60" fill="url(#bg-gradient)"/>
+  
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/> <!-- slate-800 -->
+      <stop offset="100%" stop-color="#0f172a"/> <!-- slate-900 -->
+    </linearGradient>
+  </defs>
+
+  <!-- Letter H -->
+  <path d="M 70 80 L 70 176 M 130 80 L 130 176 M 70 128 L 130 128" 
+        stroke="#10b981" stroke-width="28" stroke-linecap="round" fill="none"/>
+  
+  <!-- Letter i, with subtle bright emerald punch -->
+  <path d="M 180 110 L 180 176" 
+        stroke="#10b981" stroke-width="28" stroke-linecap="round" fill="none"/>
+  
+  <circle cx="180" cy="74" r="16" fill="#34d399"/>
+</svg>
