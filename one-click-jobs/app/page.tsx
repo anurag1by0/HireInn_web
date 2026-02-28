@@ -29,7 +29,8 @@ export default function Home() {
     if (status === 'authenticated' && session?.user) {
       const token = (session as any).accessToken || (session as any).user?.accessToken || '';
       if (token) {
-        fetch('http://localhost:8000/api/auth/profile/status', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+        fetch(`${apiUrl}/auth/profile/status`, {
           headers: { Authorization: `Bearer ${token}` }
         })
           .then(res => res.ok ? res.json() : null)
@@ -147,8 +148,8 @@ export default function Home() {
                 setSearchType(newType); // Apply filter immediately
               }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${searchTypeInput === type
-                  ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.3)]'
-                  : 'bg-[#1e2d3d] text-slate-300 border-slate-600 hover:bg-[#2d3b4e] hover:border-slate-500'
+                ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.3)]'
+                : 'bg-[#1e2d3d] text-slate-300 border-slate-600 hover:bg-[#2d3b4e] hover:border-slate-500'
                 }`}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
